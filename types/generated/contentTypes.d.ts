@@ -391,12 +391,32 @@ export interface ApiArticleArticle extends Schema.CollectionType {
           localized: true;
         };
       }>;
-    sections: Attribute.Relation<
+    categories: Attribute.Relation<
       'api::article.article',
       'manyToMany',
       'api::knowledge-base-section.knowledge-base-section'
     >;
     information: Attribute.String &
+      Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    slug: Attribute.UID<'api::article.article', 'title'> &
+      Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    content: Attribute.DynamicZone<
+      [
+        'shared.rich-text',
+        'shared.seo',
+        'shared.quote',
+        'shared.slider',
+        'shared.media'
+      ]
+    > &
       Attribute.SetPluginOptions<{
         i18n: {
           localized: true;
@@ -450,23 +470,26 @@ export interface ApiKnowledgeBaseSectionKnowledgeBaseSection
           localized: true;
         };
       }>;
-    articles: Attribute.Relation<
-      'api::knowledge-base-section.knowledge-base-section',
-      'manyToMany',
-      'api::article.article'
-    >;
-    key: Attribute.String &
-      Attribute.SetPluginOptions<{
-        i18n: {
-          localized: false;
-        };
-      }>;
     index: Attribute.Integer &
       Attribute.SetPluginOptions<{
         i18n: {
           localized: false;
         };
       }>;
+    slug: Attribute.UID<
+      'api::knowledge-base-section.knowledge-base-section',
+      'name'
+    > &
+      Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    articles: Attribute.Relation<
+      'api::knowledge-base-section.knowledge-base-section',
+      'manyToMany',
+      'api::article.article'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
