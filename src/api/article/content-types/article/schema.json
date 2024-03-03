@@ -4,24 +4,25 @@
   "info": {
     "singularName": "article",
     "pluralName": "articles",
-    "displayName": "Article",
-    "description": "Create your blog content"
+    "displayName": "Статьи",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
   },
-  "pluginOptions": {},
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
   "attributes": {
     "title": {
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
       "type": "string"
-    },
-    "description": {
-      "type": "text",
-      "maxLength": 80
-    },
-    "slug": {
-      "type": "uid",
-      "targetField": "title"
     },
     "cover": {
       "type": "media",
@@ -30,29 +31,28 @@
       "allowedTypes": [
         "images",
         "files",
-        "videos"
-      ]
+        "videos",
+        "audios"
+      ],
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
     },
-    "author": {
+    "sections": {
       "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::author.author",
+      "relation": "manyToMany",
+      "target": "api::knowledge-base-section.knowledge-base-section",
       "inversedBy": "articles"
     },
-    "category": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::category.category",
-      "inversedBy": "articles"
-    },
-    "blocks": {
-      "type": "dynamiczone",
-      "components": [
-        "shared.media",
-        "shared.quote",
-        "shared.rich-text",
-        "shared.slider"
-      ]
+    "information": {
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "type": "string"
     }
   }
 }
