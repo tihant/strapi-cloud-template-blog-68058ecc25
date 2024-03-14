@@ -391,11 +391,6 @@ export interface ApiArticleArticle extends Schema.CollectionType {
           localized: true;
         };
       }>;
-    categories: Attribute.Relation<
-      'api::article.article',
-      'manyToMany',
-      'api::knowledge-base-section.knowledge-base-section'
-    >;
     information: Attribute.String &
       Attribute.SetPluginOptions<{
         i18n: {
@@ -408,15 +403,25 @@ export interface ApiArticleArticle extends Schema.CollectionType {
           localized: true;
         };
       }>;
-    content: Attribute.DynamicZone<
-      [
-        'shared.rich-text',
-        'shared.seo',
-        'shared.quote',
-        'shared.slider',
-        'shared.media'
-      ]
-    > &
+    categories: Attribute.Relation<
+      'api::article.article',
+      'manyToMany',
+      'api::category.category'
+    >;
+    content: Attribute.RichText &
+      Attribute.CustomField<
+        'plugin::ckeditor.CKEditor',
+        {
+          output: 'HTML';
+          preset: 'rich';
+        }
+      > &
+      Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    seo: Attribute.Component<'shared.seo', true> &
       Attribute.SetPluginOptions<{
         i18n: {
           localized: true;
@@ -446,13 +451,12 @@ export interface ApiArticleArticle extends Schema.CollectionType {
   };
 }
 
-export interface ApiKnowledgeBaseSectionKnowledgeBaseSection
-  extends Schema.CollectionType {
-  collectionName: 'knowledge_base_sections';
+export interface ApiCategoryCategory extends Schema.CollectionType {
+  collectionName: 'categories';
   info: {
-    singularName: 'knowledge-base-section';
-    pluralName: 'knowledge-base-sections';
-    displayName: '\u0411\u0430\u0437\u0430 \u0437\u043D\u0430\u043D\u0438\u0439 \u0440\u0430\u0437\u0434\u0435\u043B\u044B';
+    singularName: 'category';
+    pluralName: 'categories';
+    displayName: '\u0420\u0443\u0431\u0440\u0438\u043A\u0438';
     description: '';
   };
   options: {
@@ -476,17 +480,14 @@ export interface ApiKnowledgeBaseSectionKnowledgeBaseSection
           localized: false;
         };
       }>;
-    slug: Attribute.UID<
-      'api::knowledge-base-section.knowledge-base-section',
-      'name'
-    > &
+    slug: Attribute.UID<'api::category.category', 'name'> &
       Attribute.SetPluginOptions<{
         i18n: {
           localized: true;
         };
       }>;
     articles: Attribute.Relation<
-      'api::knowledge-base-section.knowledge-base-section',
+      'api::category.category',
       'manyToMany',
       'api::article.article'
     >;
@@ -494,21 +495,21 @@ export interface ApiKnowledgeBaseSectionKnowledgeBaseSection
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
-      'api::knowledge-base-section.knowledge-base-section',
+      'api::category.category',
       'oneToOne',
       'admin::user'
     > &
       Attribute.Private;
     updatedBy: Attribute.Relation<
-      'api::knowledge-base-section.knowledge-base-section',
+      'api::category.category',
       'oneToOne',
       'admin::user'
     > &
       Attribute.Private;
     localizations: Attribute.Relation<
-      'api::knowledge-base-section.knowledge-base-section',
+      'api::category.category',
       'oneToMany',
-      'api::knowledge-base-section.knowledge-base-section'
+      'api::category.category'
     >;
     locale: Attribute.String;
   };
@@ -666,6 +667,10 @@ export interface PluginContentReleasesRelease extends Schema.CollectionType {
     releasedAt: Attribute.DateTime;
     scheduledAt: Attribute.DateTime;
     timezone: Attribute.String;
+    status: Attribute.Enumeration<
+      ['ready', 'blocked', 'failed', 'done', 'empty']
+    > &
+      Attribute.Required;
     actions: Attribute.Relation<
       'plugin::content-releases.release',
       'oneToMany',
@@ -720,6 +725,7 @@ export interface PluginContentReleasesReleaseAction
       'manyToOne',
       'plugin::content-releases.release'
     >;
+    isEntryValid: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -730,6 +736,53 @@ export interface PluginContentReleasesReleaseAction
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'plugin::content-releases.release-action',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface PluginI18NLocale extends Schema.CollectionType {
+  collectionName: 'i18n_locale';
+  info: {
+    singularName: 'locale';
+    pluralName: 'locales';
+    collectionName: 'locales';
+    displayName: 'Locale';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    name: Attribute.String &
+      Attribute.SetMinMax<
+        {
+          min: 1;
+          max: 50;
+        },
+        number
+      >;
+    code: Attribute.String & Attribute.Unique;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'plugin::i18n.locale',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'plugin::i18n.locale',
       'oneToOne',
       'admin::user'
     > &
@@ -888,53 +941,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
   };
 }
 
-export interface PluginI18NLocale extends Schema.CollectionType {
-  collectionName: 'i18n_locale';
-  info: {
-    singularName: 'locale';
-    pluralName: 'locales';
-    collectionName: 'locales';
-    displayName: 'Locale';
-    description: '';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
-  };
-  attributes: {
-    name: Attribute.String &
-      Attribute.SetMinMax<
-        {
-          min: 1;
-          max: 50;
-        },
-        number
-      >;
-    code: Attribute.String & Attribute.Unique;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'plugin::i18n.locale',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'plugin::i18n.locale',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -946,15 +952,15 @@ declare module '@strapi/types' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'api::article.article': ApiArticleArticle;
-      'api::knowledge-base-section.knowledge-base-section': ApiKnowledgeBaseSectionKnowledgeBaseSection;
+      'api::category.category': ApiCategoryCategory;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
+      'plugin::i18n.locale': PluginI18NLocale;
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
-      'plugin::i18n.locale': PluginI18NLocale;
     }
   }
 }
